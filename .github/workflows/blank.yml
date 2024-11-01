@@ -1,4 +1,4 @@
-name: Update Rules
+name: Update Apple Rules
 
 on:
   schedule:
@@ -26,41 +26,42 @@ jobs:
         
     - name: Download and process rules
       run: |
-        python -c '
-import requests
-import datetime
-import pytz
+        cat << 'EOF' > process.py
+        import requests
+        import datetime
+        import pytz
 
-def process_file(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        lines = response.text.splitlines()
-        # 过滤掉注释行和特定字符串
-        filtered_lines = [line for line in lines 
-                        if not line.startswith("#") 
-                        and "this_ruleset_is_made_by_sukkaw.ruleset.skk.moe" not in line
-                        and line.strip()]  # 确保行不是空的
-        return filtered_lines
-    else:
-        raise Exception(f"Failed to download {url}")
+        def process_file(url):
+            response = requests.get(url)
+            if response.status_code == 200:
+                lines = response.text.splitlines()
+                # 过滤掉注释行和特定字符串
+                filtered_lines = [line for line in lines 
+                                if not line.startswith("#") 
+                                and "this_ruleset_is_made_by_sukkaw.ruleset.skk.moe" not in line
+                                and line.strip()]  # 确保行不是空的
+                return filtered_lines
+            else:
+                raise Exception(f"Failed to download {url}")
 
-# 处理 apple_cn.conf
-cn_url = "https://ruleset.skk.moe/List/non_ip/apple_cn.conf"
-cdn_url = "https://ruleset.skk.moe/List/non_ip/apple_cdn.conf"
-services_url = "https://ruleset.skk.moe/List/non_ip/apple_services.conf"
+        # 处理 apple_cn.conf
+        cn_url = "https://ruleset.skk.moe/List/non_ip/apple_cn.conf"
+        cdn_url = "https://ruleset.skk.moe/List/non_ip/apple_cdn.conf"
+        services_url = "https://ruleset.skk.moe/List/non_ip/apple_services.conf"
 
-# 合并 apple_cn 和 apple_cdn
-cn_rules = process_file(cn_url)
-cdn_rules = process_file(cdn_url)
-combined_rules = list(set(cn_rules + cdn_rules))  # 使用set去重
-with open("apple_cn.conf", "w") as f:
-    f.write("\n".join(combined_rules))
+        # 合并 apple_cn 和 apple_cdn
+        cn_rules = process_file(cn_url)
+        cdn_rules = process_file(cdn_url)
+        combined_rules = list(set(cn_rules + cdn_rules))  # 使用set去重
+        with open("apple_cn.conf", "w") as f:
+            f.write("\n".join(combined_rules))
 
-# 处理 apple_services
-services_rules = process_file(services_url)
-with open("apple_services.conf", "w") as f:
-    f.write("\n".join(services_rules))
-        '
+        # 处理 apple_services
+        services_rules = process_file(services_url)
+        with open("apple_services.conf", "w") as f:
+            f.write("\n".join(services_rules))
+        EOF
+        python process.py
         
     - name: Config Git
       run: |
