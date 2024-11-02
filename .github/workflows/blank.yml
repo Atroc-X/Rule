@@ -86,5 +86,11 @@ jobs:
         current_time=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')
         
         git add apple_cn.conf apple_services.conf
-        git commit -m "Update rules: ${current_time}"
-        git push origin release
+
+        # 检查是否有更改
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "Update rules: ${current_time}"
+          git push origin release
+        fi
