@@ -29,7 +29,7 @@ jobs:
         cat << 'EOF' > process.py
         import requests
 
-        def process_file(url, remove_duplicates=False):
+        def process_file(url, remove_duplicates=False, do_sort=True):
             response = requests.get(url)
             if response.status_code == 200:
                 lines = response.text.splitlines()
@@ -40,8 +40,10 @@ jobs:
                                  and line.strip()]  # 确保行不是空的
                 if remove_duplicates:
                     return sorted(set(filtered_lines))
-                else:
+                elif do_sort:
                     return sorted(filtered_lines)
+                else:
+                    return filtered_lines  # 不排序，保持原始顺序
             else:
                 raise Exception(f"Failed to download {url}")
 
@@ -67,9 +69,8 @@ jobs:
             with open("apple_services.conf", "w") as f:
                 f.write("\n".join(services_rules))
             
-            # 处理 ai 规则，不去重，只排序
-            ai_rules = process_file(ai_url, remove_duplicates=False)
-            ai_rules.sort()
+            # 处理 ai 规则，不去重也不排序，保持原始顺序
+            ai_rules = process_file(ai_url, remove_duplicates=False, do_sort=False)
 
             with open("ai.conf", "w") as f:
                 f.write("\n".join(ai_rules))
