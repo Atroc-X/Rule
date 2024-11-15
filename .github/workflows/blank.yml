@@ -52,7 +52,9 @@ jobs:
             cn_url = "https://ruleset.skk.moe/List/non_ip/apple_cn.conf"
             cdn_url = "https://ruleset.skk.moe/List/non_ip/apple_cdn.conf"
             services_url = "https://ruleset.skk.moe/List/non_ip/apple_services.conf"
-            ai_url = "https://ruleset.skk.moe/List/non_ip/ai.conf"  # 新增 AI 规则 URL
+            ai_url = "https://ruleset.skk.moe/List/non_ip/ai.conf"
+            telegram_domain_url = "https://ruleset.skk.moe/List/non_ip/telegram.conf"
+            telegram_ip_url = "https://ruleset.skk.moe/List/ip/telegram.conf"
 
             # 处理 apple_cn 和 apple_cdn，去重并排序
             cn_rules = process_file(cn_url, remove_duplicates=True)
@@ -69,11 +71,21 @@ jobs:
             with open("apple_services.conf", "w") as f:
                 f.write("\n".join(services_rules))
             
-            # 处理 ai 规则，不去重也不排序，保持原始顺序
+            # 处理 ai 规则，不去重也不排序
             ai_rules = process_file(ai_url, remove_duplicates=False, do_sort=False)
 
             with open("ai.conf", "w") as f:
                 f.write("\n".join(ai_rules))
+
+            # 处理 telegram 规则，合并 domain 和 ip 规则，不排序
+            telegram_domain_rules = process_file(telegram_domain_url, remove_duplicates=False, do_sort=False)
+            telegram_ip_rules = process_file(telegram_ip_url, remove_duplicates=False, do_sort=False)
+            
+            # 合并规则但不排序
+            telegram_combined_rules = telegram_domain_rules + telegram_ip_rules
+
+            with open("telegram.conf", "w") as f:
+                f.write("\n".join(telegram_combined_rules))
                 
             print("Rules processing completed successfully!")
             
@@ -107,6 +119,9 @@ jobs:
             # 生成 ai.yaml
             generate_yaml("ai.conf", "ai.yaml")
             
+            # 生成 telegram.yaml
+            generate_yaml("telegram.conf", "telegram.yaml")
+            
             print("YAML files generated successfully!")
         except Exception as e:
             print(f"Error generating YAML files: {str(e)}")
@@ -125,7 +140,7 @@ jobs:
         # 获取北京时间
         current_time=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')
         
-        git add apple_cn.conf apple_services.conf apple_cn.yaml apple_services.yaml ai.conf ai.yaml
+        git add apple_cn.conf apple_services.conf apple_cn.yaml apple_services.yaml ai.conf ai.yaml telegram.conf telegram.yaml
 
         # 检查是否有更改
         if git diff --cached --quiet; then
