@@ -50,6 +50,7 @@ jobs:
             cn_url = "https://ruleset.skk.moe/List/non_ip/apple_cn.conf"
             cdn_url = "https://ruleset.skk.moe/List/non_ip/apple_cdn.conf"
             services_url = "https://ruleset.skk.moe/List/non_ip/apple_services.conf"
+            ai_url = "https://ruleset.skk.moe/List/non_ip/ai.conf"  # 新增 AI 规则 URL
 
             # 处理 apple_cn 和 apple_cdn，去重并排序
             cn_rules = process_file(cn_url, remove_duplicates=True)
@@ -65,6 +66,13 @@ jobs:
 
             with open("apple_services.conf", "w") as f:
                 f.write("\n".join(services_rules))
+            
+            # 处理 ai 规则，不去重，只排序
+            ai_rules = process_file(ai_url, remove_duplicates=False)
+            ai_rules.sort()
+
+            with open("ai.conf", "w") as f:
+                f.write("\n".join(ai_rules))
                 
             print("Rules processing completed successfully!")
             
@@ -95,6 +103,9 @@ jobs:
             # 生成 apple_services.yaml
             generate_yaml("apple_services.conf", "apple_services.yaml")
             
+            # 生成 ai.yaml
+            generate_yaml("ai.conf", "ai.yaml")
+            
             print("YAML files generated successfully!")
         except Exception as e:
             print(f"Error generating YAML files: {str(e)}")
@@ -113,7 +124,7 @@ jobs:
         # 获取北京时间
         current_time=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')
         
-        git add apple_cn.conf apple_services.conf apple_cn.yaml apple_services.yaml
+        git add apple_cn.conf apple_services.conf apple_cn.yaml apple_services.yaml ai.conf ai.yaml
 
         # 检查是否有更改
         if git diff --cached --quiet; then
